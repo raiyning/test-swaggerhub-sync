@@ -18,6 +18,9 @@
     "url" : "http://swagger.io"
   },
   "servers" : [ {
+    "url" : "https://virtserver.swaggerhub.com/raiyn/mutable-specs/1.0.0",
+    "description" : "SwaggerHub API Auto Mocking"
+  }, {
     "url" : "https://virtserver.swaggerhub.com/raiyn/github-sync-test/1.0.0",
     "description" : "SwaggerHub API Auto Mocking"
   }, {
@@ -67,7 +70,7 @@
       },
       "post" : {
         "tags" : [ "pet" ],
-        "summary" : "This is a test of the sync",
+        "summary" : "should be able to see change",
         "operationId" : "addPet",
         "requestBody" : {
           "$ref" : "#/components/requestBodies/Pet"
