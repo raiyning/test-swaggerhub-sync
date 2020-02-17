@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: Swagger Petstore
+  title: prada rada
   description: |
     This is a sample Petstore server.  You can find
     out more about Swagger at
@@ -40,7 +40,7 @@ paths:
     put:
       tags:
       - pet
-      summary: Update an existing pet
+      summary: second change to propagate
       operationId: updatePet
       requestBody:
         $ref: '#/components/requestBodies/Pet'
