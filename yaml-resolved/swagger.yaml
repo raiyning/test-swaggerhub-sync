@@ -56,7 +56,7 @@ paths:
     post:
       tags:
       - pet
-      summary: Add a new pet to the store
+      summary: This is a test of the sync
       operationId: addPet
       requestBody:
         $ref: '#/components/requestBodies/Pet'
