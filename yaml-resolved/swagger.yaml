@@ -1,715 +1,1566 @@
 openapi: 3.0.0
 info:
-  title: prada rada
-  description: |
-    This is a sample Petstore server.  You can find
-    out more about Swagger at
-    [http://swagger.io](http://swagger.io) or on
-    [irc.freenode.net, #swagger](http://swagger.io/irc/).
-  termsOfService: http://swagger.io/terms/
+  title: 10x Payments
   contact:
-    email: apiteam@swagger.io
-  license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-  version: 1.0.0
-externalDocs:
-  description: Find out more about Swagger
-  url: http://swagger.io
+    url: https://developer.tenx-platform.com/versions
+    email: api@10xbanking.com
+  version: 2.6.0
 servers:
-- url: https://virtserver.swaggerhub.com/raiyn/mutable-specs/1.0.0
-  description: SwaggerHub API Auto Mocking
-- url: https://virtserver.swaggerhub.com/raiyn/github-sync-test/1.0.0
-  description: SwaggerHub API Auto Mocking
-- url: https://petstore.swagger.io/v2
+- url: https://dev.tenx-platform.com
+- url: https://test.tenx-platform.com
+- url: https://qa.tenx-platform.com
 tags:
-- name: pet
-  description: Everything about your Pets
-  externalDocs:
-    description: Find out more
-    url: http://swagger.io
-- name: store
-  description: Access to Petstore orders
-- name: user
-  description: Operations about user
-  externalDocs:
-    description: Find out more about our store
-    url: http://swagger.io
+- name: TopUps
+  description: |
+    ekbdwadas,mdnaslknda jhbkmbj The TopUps API allows a party to fund an account that has been provisioned on the 10x platform, using a new or previously saved debit card.
+    Using the POST operation on /v1/topUps to fund an account there are two available methods for funding an account via TopUps.
+- name: Payments
+  description: |
+    The Payments API provides users with an ability to send money from an account held on the 10x platform.
+    Once an account has been provisioned and funded, payments can be made from that account to a known party on the platform by specifying the payeeKey field, or to an external account through specifying sortCode and accountNumber fields.
+    In both scenarios a payment type field must be specified, along with the amount to be sent.
+- name: Categorisations
+  description: |
+    Use the **`GET`** operation on `/v1/categorisations/transactionCategories` to get the list of all available categories for a transaction.
+    Classifying the transactions will allow the client insights to have a more accurate analysis.
+- name: Payees
+  description: |
+    Payees are a list of recipients who have been saved by a user during a payment journey.
+    Use the GET operation on /v1/payees to retrieve a list of payees associated with a person party.
+    On a successful payment the platform will automatically set the name field on a payee, if the payee is known to the 10x Platform. For this you will already have a known identifier for the user you wanted to pay, such as their mobile number, email address or their sort code and account number.
+    With the POST operation it's possible to create a new payee without making a payment.
+    - For On-Us, account identifier is the party key.
+    - For AIIN, account identifier is the combination of sort code and account number
+- name: Cards
+  description: |
+    The Cards API will allow you to generate a new debit card for a newly created account subscription, and additionally save card details used to fund an account.
+- name: CardPins
+  description: |
+    Use CardPins API to retrieve the *debit card pin number* associated with a party and their account.
 paths:
-  /pet:
-    put:
-      tags:
-      - pet
-      summary: second change to propagate
-      operationId: updatePet
-      requestBody:
-        $ref: '#/components/requestBodies/Pet'
-      responses:
-        "400":
-          description: Invalid ID supplied
-        "404":
-          description: Pet not found
-        "405":
-          description: Validation exception
-      security:
-      - petstore_auth:
-        - write:pets
-        - read:pets
+  /v1/topUps:
     post:
       tags:
-      - pet
-      summary: should be able to see change
-      operationId: addPet
-      requestBody:
-        $ref: '#/components/requestBodies/Pet'
-      responses:
-        "405":
-          description: Invalid input
-      security:
-      - petstore_auth:
-        - write:pets
-        - read:pets
-  /pet/findByStatus:
-    get:
-      tags:
-      - pet
-      summary: Finds Pets by status
-      description: Multiple status values can be provided with comma separated strings
-      operationId: findPetsByStatus
-      parameters:
-      - name: status
-        in: query
-        description: Status values that need to be considered for filter
-        required: true
-        style: form
-        explode: true
-        schema:
-          type: array
-          items:
-            type: string
-            default: available
-            enum:
-            - available
-            - pending
-            - sold
-      responses:
-        "200":
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Pet'
-            application/xml:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Pet'
-        "400":
-          description: Invalid status value
-      security:
-      - petstore_auth:
-        - write:pets
-        - read:pets
-  /pet/findByTags:
-    get:
-      tags:
-      - pet
-      summary: Finds Pets by tags
-      description: Muliple tags can be provided with comma separated strings. Use\
-        \ tag1, tag2, tag3 for testing.
-      operationId: findPetsByTags
-      parameters:
-      - name: tags
-        in: query
-        description: Tags to filter by
-        required: true
-        style: form
-        explode: true
-        schema:
-          type: array
-          items:
-            type: string
-      responses:
-        "200":
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Pet'
-            application/xml:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Pet'
-        "400":
-          description: Invalid tag value
-      deprecated: true
-      security:
-      - petstore_auth:
-        - write:pets
-        - read:pets
-  /pet/{petId}:
-    get:
-      tags:
-      - pet
-      summary: Find pet by ID
-      description: Returns a single pet
-      operationId: getPetById
-      parameters:
-      - name: petId
-        in: path
-        description: ID of pet to return
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-          format: int64
-      responses:
-        "200":
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Pet'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Pet'
-        "400":
-          description: Invalid ID supplied
-        "404":
-          description: Pet not found
-      security:
-      - api_key: []
-    post:
-      tags:
-      - pet
-      summary: Updates a pet in the store with form data
-      operationId: updatePetWithForm
-      parameters:
-      - name: petId
-        in: path
-        description: ID of pet that needs to be updated
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-          format: int64
+      - TopUps
+      summary: Fund your account
+      description: |
+        The **TopUps API** allows a party to *fund an account* that has been provisioned on the 10x platform, using a new or previously saved debit card.
+
+          Use the **`POST`** operation on `/v1/topUps` to fund an account.
+
+          There are two available methods for funding an account via TopUps, funding an account using new card details and Using a saved card token
+
+          To fund an account on the platform using a debit card for the first time, a user must specify the *funding method*  `type`as  **`card`**
+          and provide the card details such as  `pan`,  `cvv`,  `expiryMonth`  and  `expiryYear`.
+
+          In addition, the account to be funded represented by the  `accountId`  must be specified, along with an  `amount` to transfer.
+
+          By setting the `saveCard` field to **`true`**,  a user can save their card details for later retrieval by the 10x platform.
+
+          This can allow the user to fund an account without having to re-enter all their debit card details.
+
+          To fund an account using a saved card, the `panToken` and `type` fields need to be set with the `accountId` and an `amount` specified.
+
+          The `type` field must be set to **`token`**.
+      operationId: topup
       requestBody:
         content:
-          application/x-www-form-urlencoded:
+          application/json:
             schema:
               $ref: '#/components/schemas/body'
       responses:
-        "405":
-          description: Invalid input
-      security:
-      - petstore_auth:
-        - write:pets
-        - read:pets
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+  /v1/topUps/cards:
+    get:
+      tags:
+      - TopUps
+      summary: Get all top-up cards
+      description: |
+        Retrieves a list of all cards that have been saved to topUp an account
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getTopUpCardsResponse'
+              examples:
+                "200_get_topup_cards":
+                  value:
+                    cards:
+                    - cardId: "9932084412114622125"
+                      cardBrand: VISA
+                      uniqueShopperId: 90b9b30a1ac0f2a4cda57040246f0970c36a847443675d3b7f61754027cc13a2
+                      lastUsed: 2018-11-22T12:36:43.105
+                      panLastFourDigits: "1111"
+                      panToken: "9932084412114622125"
+                      expiryMonth: "06"
+                      expiryYear: "2019"
+  /v1/topUps/cards/{cardId}:
     delete:
       tags:
-      - pet
-      summary: Deletes a pet
-      operationId: deletePet
+      - TopUps
+      summary: Delete card
+      description: |
+        Use the **`DELETE`** operation on `/v1/topUps/cards/{cardId}` to delete a previously saved card.
+      operationId: deleteCard
       parameters:
-      - name: api_key
+      - name: cardId
+        in: path
+        description: card to be deleted
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/deleteCardByCardIdResponse'
+  /v1/payments/domestic:
+    post:
+      tags:
+      - Payments
+      summary: Domestic Payment
+      description: |
+        The **`POST`** operation on `/v1/payments/domestic` is specific for payments to customers within the platform and outside the platform.
+        It also introduces the `category` field, so the user can see this spending reflected on their insights tab. The response also introduces a new array field called `errors` containing mutliple errors.
+        For more information on response codes you can visit https://developer.tenx-platform.com/docs/PaymentsResponseCodes_docs
+      operationId: onusPayment
+      parameters:
+      - name: X-TransactionId
         in: header
+        description: Transaction identifier required to identify whether the user
+          is authorised to initiate the payment. More information can be found on
+          https://developer.tenx-platform.com/docs/step_up_docs
         required: false
         style: simple
         explode: false
         schema:
           type: string
-      - name: petId
-        in: path
-        description: Pet id to delete
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-          format: int64
-      responses:
-        "400":
-          description: Invalid ID supplied
-        "404":
-          description: Pet not found
-      security:
-      - petstore_auth:
-        - write:pets
-        - read:pets
-  /pet/{petId}/uploadImage:
-    post:
-      tags:
-      - pet
-      summary: uploads an image
-      operationId: uploadFile
-      parameters:
-      - name: petId
-        in: path
-        description: ID of pet to update
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-          format: int64
       requestBody:
-        content:
-          application/octet-stream:
-            schema:
-              type: string
-              format: binary
-      responses:
-        "200":
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
-      security:
-      - petstore_auth:
-        - write:pets
-        - read:pets
-  /store/inventory:
-    get:
-      tags:
-      - store
-      summary: Returns pet inventories by status
-      description: Returns a map of status codes to quantities
-      operationId: getInventory
-      responses:
-        "200":
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties:
-                  type: integer
-                  format: int32
-      security:
-      - api_key: []
-  /store/order:
-    post:
-      tags:
-      - store
-      summary: Place an order for a pet
-      operationId: placeOrder
-      requestBody:
-        description: order placed for purchasing the pet
+        description: Payment request payload
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Order'
+              $ref: '#/components/schemas/domesticPaymentParams'
         required: true
       responses:
         "200":
-          description: successful operation
+          description: The payment was successfully initiated
+        "400":
+          description: status code '400.007.03' with a new array field called errors
+            containing multiple errors
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Order'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Order'
-        "400":
-          description: Invalid Order
-  /store/order/{orderId}:
-    get:
-      tags:
-      - store
-      summary: Find purchase order by ID
-      description: For valid response try integer IDs with value >= 1 and <= 10.\
-        \ Other values will generated exceptions
-      operationId: getOrderById
-      parameters:
-      - name: orderId
-        in: path
-        description: ID of pet that needs to be fetched
-        required: true
-        style: simple
-        explode: false
-        schema:
-          maximum: 10.0
-          minimum: 1
-          type: integer
-          format: int64
-      responses:
-        "200":
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Order'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Order'
-        "400":
-          description: Invalid ID supplied
-        "404":
-          description: Order not found
-    delete:
-      tags:
-      - store
-      summary: Delete purchase order by ID
-      description: For valid response try integer IDs with positive integer value.\
-        \ Negative or non-integer values will generate API errors
-      operationId: deleteOrder
-      parameters:
-      - name: orderId
-        in: path
-        description: ID of the order that needs to be deleted
-        required: true
-        style: simple
-        explode: false
-        schema:
-          minimum: 1
-          type: integer
-          format: int64
-      responses:
-        "400":
-          description: Invalid ID supplied
-        "404":
-          description: Order not found
-  /user:
+                $ref: '#/components/schemas/badRequestNestedErrors'
+  /v1/payments/verifications:
     post:
       tags:
-      - user
-      summary: Create user
-      description: This can only be done by the logged in user.
-      operationId: createUser
+      - Payments
+      summary: Payment Verification
+      description: |-
+        This API is used **first at policy evaluation stage** when the user responds to a push notification sent to their device as a result of a CNP transaction or fraud alert.  When the user logs into their app and responds 'Accept' or 'Decline' to the transaction details presented to them, Mobile shall call this endpoint to initiate the policy evaluation stage of the step-up process. In response, a transaction ID, a 403 status - step-up required message, and authentication method are returned.
+
+        This API is used **secondly at replay stage** after the user has successfully performed the step-up authentication.  In this case, both the transaction ID and payload checksum generated at policy evaluation stage are verified and a `200 status` is returned to Mobile. In the replay stage the CNP transaction or fraud alert service will be notified with the outcome of the customer choice, `isTransactionValid=true` if accepted, `"false"` if not; if the customer has accepted the notification request, but the replay stage was unsuccessful then the CNP transaction or fraud alert service will be notified with a `"FAILED"` outcome.
+      operationId: paymentVerification
+      parameters:
+      - name: X-TransactionId
+        in: header
+        description: Transaction identifier required to identify whether the user
+          is authorised
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
       requestBody:
-        description: Created user object
+        content:
+          application/json; charset=utf-8:
+            schema:
+              $ref: '#/components/schemas/paymentVerificationRequestBody'
+      responses:
+        "403":
+          description: 'See Errors: Step-Up required'
+        "200":
+          description: '"OK" - Which means that the replay of the verification is
+            successfull'
+        "400":
+          description: .007.01 - Invalid or missing transactionSource<br> .007.02
+            - Missing externalTransactionId<br> .007.03 - Service Specific Error<br>
+            .007.07 - Invalid or missing isTransactionValid
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/badRequestGenericErrorBody'
+  /v1/payments/internal/transfers:
+    post:
+      tags:
+      - Payments
+      summary: Money transfer between accounts
+      description: 'Authenticated retail banking customers who have multiple products
+        will be able to make payments between two internal parent accounts using the
+        `sourceSubscriptionKey` and the `destination.subscriptionKey` fields, also
+        specifying values for `amount.currency` and `amount.value`. Optionally a `category`  may
+        also be associated with the transfer. '
+      operationId: create-internal-transfers
+      requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/create-internal-transfers-request'
         required: true
       responses:
-        default:
-          description: successful operation
-  /user/createWithArray:
-    post:
-      tags:
-      - user
-      summary: Creates list of users with given input array
-      operationId: createUsersWithArrayInput
-      requestBody:
-        $ref: '#/components/requestBodies/UserArray'
-      responses:
-        default:
-          description: successful operation
-  /user/createWithList:
-    post:
-      tags:
-      - user
-      summary: Creates list of users with given input array
-      operationId: createUsersWithListInput
-      requestBody:
-        $ref: '#/components/requestBodies/UserArray'
-      responses:
-        default:
-          description: successful operation
-  /user/login:
+        "200":
+          description: The transfer was successful
+  /v1/payments/directDebits/mandates:
     get:
       tags:
-      - user
-      summary: Logs user into the system
-      operationId: loginUser
+      - Payments
+      summary: Retrieve all Direct Debit mandates
+      description: This endpoint allows end users to retrieve mandates with Direct
+        Debit Mandate Status
       parameters:
-      - name: username
+      - name: mandateId
         in: query
-        description: The user name for login
-        required: true
+        description: Unique identifier for the mandate
+        required: false
         style: form
         explode: true
         schema:
           type: string
-      - name: password
+          format: uuid
+          example: d3256f84-e701-4acb-9a7e-2cb0a7a78f99
+      - name: status
         in: query
-        description: The password for login in clear text
-        required: true
+        description: Status of the mandate
+        required: false
         style: form
         explode: true
         schema:
           type: string
-      responses:
-        "200":
-          description: successful operation
-          headers:
-            X-Rate-Limit:
-              description: calls per hour allowed by the user
-              style: simple
-              explode: false
-              schema:
-                type: integer
-                format: int32
-            X-Expires-After:
-              description: date in UTC when token expires
-              style: simple
-              explode: false
-              schema:
-                type: string
-                format: date-time
-          content:
-            application/json:
-              schema:
-                type: string
-            application/xml:
-              schema:
-                type: string
-        "400":
-          description: Invalid username/password supplied
-  /user/logout:
-    get:
-      tags:
-      - user
-      summary: Logs out current logged in user session
-      operationId: logoutUser
-      responses:
-        default:
-          description: successful operation
-  /user/{username}:
-    get:
-      tags:
-      - user
-      summary: Get user by user name
-      operationId: getUserByName
-      parameters:
-      - name: username
-        in: path
-        description: The name that needs to be fetched. Use user1 for testing.
+          enum:
+          - ACTIVE
+          - CANCELLED
+          - REJECT_NEW
+          - DUPLICATE
+          - CANCEL_REQUESTED
+          - CANCELLATION_REQUEST
+      - name: subscription-Key
+        in: header
+        description: Subscription key associated with a given party
         required: true
         style: simple
         explode: false
         schema:
           type: string
+          format: uuid
+          example: a4413aa1-87de-470a-9486-0718f790a694
       responses:
         "200":
-          description: successful operation
+          description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/User'
-        "400":
-          description: Invalid username supplied
-        "404":
-          description: User not found
+                $ref: '#/components/schemas/ddMandatePaperResponse'
+  /v1/payments/directDebits/mandates/{mandateId}/cancel:
     put:
       tags:
-      - user
-      summary: Updated user
-      description: This can only be done by the logged in user.
-      operationId: updateUser
+      - Payments
+      summary: Cancel a Direct Debit mandate
+      description: This endpoint allows a customer to initiate a cancel of a BACS
+        Direct Debit mandate
       parameters:
-      - name: username
+      - name: mandateId
         in: path
-        description: name that need to be updated
+        description: Unique identifier for the mandate
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+          example: d3256f84-e701-4acb-9a7e-2cb0a7a78f99
+      - name: subscription-Key
+        in: header
+        description: Subscription key associated with a given party
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+          example: a4413aa1-87de-470a-9486-0718f790a694
+      responses:
+        "204":
+          description: No Content
+  /v1/categorisations/transactionCategories:
+    get:
+      tags:
+      - Categorisations
+      summary: Get list of transaction categories
+      description: |
+        Use the **`GET`** operation on `/v1/categorisations/transactionCategories` to get the list of all available categories for a transaction (`EATING_OUT`, `GROCERIES`, `HOLIDAYS`, etc.)
+        Classifying the transactions will allow the client insights to have a more accurate analysis.
+      operationId: getTransactionCategories
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/getTransactionCategoriesResponse'
+  /v1/payees:
+    get:
+      tags:
+      - Payees
+      summary: Get list of all payees
+      operationId: getPayees
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getPayeesResponse'
+    post:
+      tags:
+      - Payees
+      summary: Create a new payee
+      description: |
+        Create a new payee without making a payment.
+        The paymentMethod type can be ONUS or AIIN.
+        With ONUS, account identifier is the party key.
+        With AIIN, account identifier is the combination of sort code and account number
+      operationId: createPayee
+      requestBody:
+        description: Payee request payload
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/payee'
+        required: true
+      responses:
+        "201":
+          description: created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_201'
+  /v1/payees/{payeeId}:
+    put:
+      tags:
+      - Payees
+      summary: Update Payee
+      description: |
+        Use the **`PUT`** operation on `/v1/payees/{payeeId}` to update the details from the payee.
+        The update can only be done upon the paymentMethod used on payment (if paid by mobileNumber, only mobileNumber would be possible to update).
+        If a new `paymentMethod` for the payee is pretended, the user would need to make a new payment with a new `paymentMethod`.
+      operationId: updatePayee
+      parameters:
+      - name: payeeId
+        in: path
+        description: Payee Id
         required: true
         style: simple
         explode: false
         schema:
           type: string
       requestBody:
-        description: Updated user object
+        description: Payee update request payload
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/payee'
         required: true
       responses:
-        "400":
-          description: Invalid user supplied
-        "404":
-          description: User not found
+        "200":
+          description: OK
     delete:
       tags:
-      - user
-      summary: Delete user
-      description: This can only be done by the logged in user.
-      operationId: deleteUser
+      - Payees
+      summary: Delete Payee
+      description: |
+        Use the **`DELETE`** operation on `/v1/payees/{payeeId}` to delete and existing payee.
+      operationId: deletePayee
       parameters:
-      - name: username
+      - name: payeeId
         in: path
-        description: The name that needs to be deleted
+        description: Payee Id
         required: true
         style: simple
         explode: false
         schema:
           type: string
       responses:
-        "400":
-          description: Invalid username supplied
+        "204":
+          description: Deleted Payee from list
+  /v2/cards:
+    get:
+      tags:
+      - Cards
+      summary: Get v2 card details
+      description: |
+        The **Cards API** will allow you to generate a new debit card for a newly created account subscription, and additionally save card details used to fund an account.
+
+        With this API the user can **`GET`** operation on `/cards` to get the list of card details the user has saved;
+      operationId: getCardv2
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getCardResponsev2'
+  /v1/cards:
+    get:
+      tags:
+      - Cards
+      summary: Get card details
+      description: |
+        The **Cards API** will allow you to generate a new debit card for a newly created account subscription, and additionally save card details used to fund an account.
+
+        With this API the user can **`GET`** operation on `/cards` to get the list of card details the user has saved;
+      operationId: getCard
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getCardsResponse'
+    post:
+      tags:
+      - Cards
+      summary: Create a new debit card at onboarding
+      description: |2
+
+        This endpoint is to be used for preprod environments when connected with 10x debit card on-boarding simulator.
+
+        Use the **POST** operation on ‘/cards’ to create a new debit card against a subscription.
+
+        Using account number and sort code for this operation, a unique CERTKEYID generated in the app is required in the header.
+      operationId: postDebitCard
+      parameters:
+      - name: CERTKEYID
+        in: header
+        description: certificate Key id
+        required: true
+        style: simple
+        explode: false
+        schema:
+          minLength: 4
+          type: string
+      requestBody:
+        content:
+          application/vnd.10x.onboarding.card+json:
+            schema:
+              $ref: '#/components/schemas/postDebitCard'
+      responses:
+        "200":
+          description: Debit card details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/postDebitCardResponse'
+  /v1/cards/{panToken}/settings:
+    get:
+      tags:
+      - Cards
+      summary: Get card settings
+      description: |
+        `GET` on operation `/cards/{panToken}/settings` to get the list of setting of your card
+      operationId: getCardSettings
+      parameters:
+      - name: panToken
+        in: path
+        description: The Card Pan Token from GET /v2/cards
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getCardSettingsResponse'
+    patch:
+      tags:
+      - Cards
+      summary: Update Card Settings
+      description: |
+        `PATCH` operation for the user to update any of the setting details.
+      operationId: patchCardSettings
+      parameters:
+      - name: panToken
+        in: path
+        description: The Card Pan Token from GET /v2/cards
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateCardSettingsRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+  /v2/cards/{cardId}/activate:
+    post:
+      tags:
+      - Cards
+      summary: Debit card activation
+      description: |
+        As an active 10x party with a debit card associated with a subscription. You can activate a card so that it can be used for transaction purpose.
+      operationId: postCardActivation
+      parameters:
+      - name: cardId
+        in: path
+        description: Card Pan Token
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/postCardActivateRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/postCardActivateResponse'
+  /v2/cards/@onboardingCard/pin:
+    post:
+      tags:
+      - Cards
+      summary: Set pin for debit card
+      description: |
+        This endpoint is used to set a 4 digit PIN code for a debit card.
+      operationId: postSetPinDebitCard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/postSetCardPinRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+  /v2/cards/{cardId}/pin:
+    get:
+      tags:
+      - Cards
+      summary: Reveal my card PIN
+      description: |
+        As an active 10x party with a debit card associated with a subscription, you can reveal the PIN number associated to my debit card.
+      operationId: get-card-pin
+      parameters:
+      - name: cardId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: CERTKEYID
+        in: header
+        description: Certificate Key Id
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#/components/schemas/cardId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getDebitCardPinResponse'
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
         "404":
-          description: User not found
+          description: Not Found
+      deprecated: false
+  /v2/cards/{cardId}/report:
+    patch:
+      tags:
+      - Cards
+      summary: Report lost or stolen debit card
+      description: As an active 10x party with a debit card associated with a subscription
+        key, if the card is lost or stolen then you can report to 10x so that my card
+        can not be misused.
+      operationId: report-debit-card
+      parameters:
+      - name: cardId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/reportDebitCardResponse'
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: false
+  /v2/cards/{cardId}/replace:
+    patch:
+      tags:
+      - Cards
+      summary: Request Replacement for Debit Card
+      description: As an active 10x party with a debit card associated with a subscription.
+        Gives the ability raise the request to replace my card in case of my card
+        is damage or not working properly.
+      operationId: replace-card
+      parameters:
+      - name: cardId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#/components/schemas/cardId'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/replaceDebitCardResponse'
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+      deprecated: false
+  /v1/cardPins/{partyKey}:
+    get:
+      tags:
+      - CardPins
+      summary: Reveal PIN for a partyKey
+      description: |
+        Use **CardPins API** to retrieve the *debit card pin number* associated with a party and their account.
+        The *pin* retrieved through the **`GET`** operation on `/v1/cardPins/{partyKey}`, is the encrypted four digit pin, which can be set by a prospective user during their onboarding process. The request requires a valid *certificate key id* `certkeyid` and `partyKey` to be set.
+        Revealling of the pin in the API request will return the `encryptedPin` value, which must be decrypted by the client.
+      operationId: getCardPins
+      parameters:
+      - name: partyKey
+        in: path
+        description: partyKey is a UUID String and unique identifier for all party
+          resources created on the 10x platform.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      - name: CERTKEYID
+        in: header
+        description: certificate Key id
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Encrypted Pin for the customer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getCardPins'
+        "404":
+          description: Not found
 components:
   schemas:
-    Order:
+    getTopUpCardsResponse:
+      title: Root Type for getTopUpCardsResponse
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
-        petId:
-          type: integer
-          format: int64
-        quantity:
-          type: integer
-          format: int32
-        shipDate:
+        cards:
+          type: array
+          items:
+            $ref: '#/components/schemas/topUpCard'
+      description: The root of the getTopUpCardsResponse type's schema.
+    topUpCard:
+      title: TopUp Card
+      type: object
+      properties:
+        cardId:
           type: string
+          description: The Unique ID associated with a card
+          example: be7a0ee6-4ebd-4c34-8676-c7fb21fc1354
+        cardBrand:
+          type: string
+          example: VISA
+          enum:
+          - VISA
+          - MASTERCARD
+          - AMEX
+        uniqueShopperId:
+          type: string
+          example: "1234"
+        lastUsed:
+          type: string
+          description: Last time the card was used to topup
           format: date-time
+        panLastFourDigits:
+          type: string
+          description: The last four digits of the PAN.
+          example: "6789"
+        panToken:
+          type: string
+          description: Tokenised Primary Account Number (PAN)
+          example: "5356938020019956"
+        expiryMonth:
+          type: string
+          description: Two digit of the expiry month with format MM
+          example: "09"
+        expiryYear:
+          type: string
+          description: Four digit of the expiry year with format YYYY
+          example: "22"
+      description: TopUp Card Schema
+    deleteCardByCardIdResponse:
+      title: Delete Card by Card Id
+      type: object
+      properties:
         status:
           type: string
-          description: Order Status
+          example: CARD_REMOVED
           enum:
-          - placed
-          - approved
-          - delivered
-        complete:
-          type: boolean
-          default: false
-      xml:
-        name: Order
-    Category:
+          - CARD_REMOVED
+      description: Delete Card by Card Id
+    badRequestNestedErrors:
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
+        code:
+          type: string
+          example: 400.007.03
+        message:
+          type: string
+          example: Bad Request
+        info:
+          type: string
+          example: Bad Request
+        errors:
+          type: array
+          example:
+          - code: 10006,
+            message: 'Validation error: must not be blank (provided value is )'
+            field: payee.accountName
+          - code: 10004,
+            message: Invalid field value. (provided value is GP)
+            field: amount.currency
+          items:
+            $ref: '#/components/schemas/badRequestNestedErrors_errors'
+    domesticPaymentParams:
+      type: object
+      properties:
+        amount:
+          $ref: '#/components/schemas/totalRequestedAmount'
+        category:
+          type: string
+          description: Payment's category.
+          example: General
+          enum:
+          - CASH
+          - EATING_OUT
+          - ENTERTAINMENT
+          - EXPENSES
+          - GENERAL
+          - GROCERIES
+          - HEALTH
+          - HOLIDAYS
+          - SHOPPING
+          - TRANSFERS
+          - TRANSPORT
+          - UTILITIES
+          - INCOME
+          - EMPLOYEES_PAYROLL
+          - EQUIPMENT
+          - EXPENSES
+          - INSURANCES
+          - LOANS
+          - PROFESSIONAL_SERVICES
+          - SUPPLIERS
+          - TAX
+          - TRAVEL
+          - UTILITIES
+        payer:
+          $ref: '#/components/schemas/payerAccountDetails'
+        payee:
+          $ref: '#/components/schemas/payeeAccountDetails'
+        reference:
+          type: string
+          description: Payment reference
+          example: Scope payment
+    totalRequestedAmount:
+      type: object
+      properties:
+        currency:
+          type: string
+          description: Payment currency represented as an ISO4217 currency code
+          example: GBP
+        value:
+          type: string
+          description: Value of the payment amount
+          example: "10"
+    payerAccountDetails:
+      type: object
+      properties:
+        accountNumber:
+          type: string
+          description: Account number of the payer
+          example: "30426373"
+        bankId:
+          type: string
+          description: identifier of payer's bank
+          example: "040595"
+    payeeAccountDetails:
+      type: object
+      properties:
+        accountName:
+          type: string
+          description: payee name
+          example: Peter
+        accountNumber:
+          type: string
+          description: payee's account number
+          example: "90289121"
+        bankId:
+          type: string
+          description: identifier of the payee's bank
+          example: "040595"
+    paymentVerificationRequestBody:
+      type: object
+      properties:
+        externalTransactionId:
+          type: string
+          description: External transaction identifier
+          example: 3f3a3849-7c4c-4a1a-83b6-42a2edd94011
+        panToken:
+          type: string
+          description: the card's pan token
+          example: "5667194623544099"
+        merchantName:
+          type: string
+          description: third party's name
+          example: M&S
+        isTransactionValid:
+          type: boolean
+          description: OOB outcome
+          example: true
+        transactionSource:
+          type: string
+          description: Source of the transaction
+          example: FRAUD_ALERT
+          enum:
+          - FRAUD_ALERT
+          - 3DS_PAYMENT_VERIFICATION
+        amount:
+          $ref: '#/components/schemas/totalRequestedAmount'
+    badRequestGenericErrorBody:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Specific Error Code <br>                                 The
+            first part of the code is the HTTP error code.<br> The second part of
+            the code is the unique API number.<br> The third part is the unique error
+            number of particular API.
+        message:
+          type: string
+          description: Standard Error Message
+          example: Bad Request
+        info:
+          type: string
+          description: Info is sometimes describing the error in more detail
+        errors:
+          type: string
+          description: New array field called errors containing multiple errors (Optional)
+    create-internal-transfers-request:
+      required:
+      - amount
+      - destination
+      - sourceSubscriptionKey
+      type: object
+      properties:
+        amount:
+          $ref: '#/components/schemas/amount'
+        category:
+          type: string
+          example: GENERAL
+          enum:
+          - CASH
+          - EATING_OUT
+          - ENTERTAINMENT
+          - EXPENSES
+          - GENERAL
+          - GROCERIES
+          - HEALTH
+          - HOLIDAYS
+          - SHOPPING
+          - TRANSFERS
+          - TRANSPORT
+          - UTILITIES
+          - INCOME
+          - EMPLOYEES_PAYROLL
+          - EQUIPMENT
+          - EXPENSES
+          - INSURANCES
+          - LOANS
+          - PROFESSIONAL_SERVICES
+          - SUPPLIERS
+          - TAX
+          - TRAVEL
+          - UTILITIES
+        destination:
+          $ref: '#/components/schemas/destination'
+        sourceSubscriptionKey:
+          $ref: '#/components/schemas/sourceSubscriptionKey'
+    amount:
+      title: amount
+      type: object
+      properties:
+        currency:
+          type: string
+          description: Payment currency represented as an ISO4217 currency code
+          example: GBP
+        value:
+          type: number
+          description: Value of the payment amount
+          example: 64.99
+    destination:
+      title: destination
+      type: object
+      properties:
+        subscriptionKey:
+          type: string
+          description: The Unique identifier for an account to send money
+          example: 130d1ae2-2372-42e4-b78f-a6d7eb471c6c
+    sourceSubscriptionKey:
+      type: string
+      description: The subscription account where money will be taken out from
+      example: 869debe4-3fda-4383-82b9-1efea56b0cc4
+    ddMandatePaperResponse:
+      type: object
+      properties:
+        mandates:
+          type: array
+          items:
+            $ref: '#/components/schemas/ddArrayMandatePaperResponse'
+    ddArrayMandatePaperResponse:
+      properties:
+        bacsDDMandateId:
+          type: string
+          description: Unique identifier for the mandate
+          format: uuid
+          example: d3256f84-e701-4acb-9a7e-2cb0a7a78f99
+        dateReceived:
+          type: string
+          description: Date mandate received
+          format: date-time
+        dateLastProcessed:
+          type: string
+          description: Last date which transacted against this mandate
+          format: date-time
+        bacsDDMandateStatus:
+          type: string
+          description: Status of the mandate
+          example: ACTIVE
+          enum:
+          - ACTIVE
+          - CANCELLED
+          - REJECT_NEW
+          - DUPLICATE
+          - CANCEL_REQUESTED
+          - CANCELLATION_REQUEST
+        bacsDDMandateStatusReason:
+          type: string
+          description: Status reason of the mandate
+          example: DUPLICATE_NEW
+        creditorSortCode:
+          type: string
+          description: Sortcode of the originator
+          example: "40016"
+        creditorAccountName:
+          type: string
+          description: Name of the originator account
+          example: Adam
+        creditorAccountNumber:
+          type: string
+          description: Account number of the originator
+          example: "87259886"
+        debtorSortCode:
+          type: string
+          description: Payers account sortcode
+          example: "40604"
+        debtorAccountName:
+          type: string
+          description: Payers account name
+          example: Rachel
+        debtorAccountNumber:
+          type: string
+          description: Payers account number
+          example: "28232999"
+        bacsDdServiceUserNumber:
+          type: string
+          description: Originator service user number
+          example: "683123"
+        bacsDdMandateRef:
+          type: string
+          description: Reference of the mandate
+          example: ABCD123
+    getTransactionCategoriesResponse:
+      type: object
+      properties:
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/getTransactionCategoriesResponse_categories'
+        default:
+          $ref: '#/components/schemas/getTransactionCategoriesResponse_default'
+    getPayeesResponse:
+      title: Root type of getPayeesResponse
+      type: object
+      properties:
+        payees:
+          type: array
+          items:
+            $ref: '#/components/schemas/payeesPayload'
+    payeesPayload:
+      properties:
         name:
           type: string
-      xml:
-        name: Category
-    User:
-      type: object
+          description: Payee name
+          example: Anna
+        is10xCustomer:
+          type: boolean
+          description: Flag indicating if the payee is a customer of a tennant on
+            the 10x platform
+          example: false
+        category:
+          type: string
+          description: Category of the payment
+          example: travel
+        payeeId:
+          type: string
+          description: Unique identifier of the payee
+          example: cfaa4302-e4c2-481e-aa60-19d7d5a58839
+        paymentMethods:
+          type: array
+          items:
+            $ref: '#/components/schemas/payeesPayloadMethods'
+    payeesPayloadMethods:
       properties:
         id:
-          type: integer
-          format: int64
-        username:
           type: string
+          example: "01010191919191"
+        type:
+          type: string
+          example: AIIN
+        sortCode:
+          type: string
+          description: A code assigned to a specific branch of a UK bank.
+          example: "010101"
+        accountNumber:
+          type: string
+          description: Account number associated with subscription.
+          example: "91919191"
+        issuer:
+          type: string
+          example: Bank
+        howFound:
+          type: string
+          example: +447448125791
+    payee:
+      properties:
+        name:
+          type: string
+          example: Anna
+        is10xCustomer:
+          type: boolean
+          example: false
+        category:
+          type: string
+          example: General
+        paymentMethods:
+          type: array
+          items:
+            $ref: '#/components/schemas/payeesPayloadUpdateMethods'
+    payeesPayloadUpdateMethods:
+      properties:
+        id:
+          type: string
+          example: "01010191919191"
+        type:
+          type: string
+          example: AIIN
+          enum:
+          - AIIN
+          - ONUS
+        issuer:
+          type: string
+          example: Bank
+        howFound:
+          type: string
+          example: +447448125791
+    getCardResponsev2:
+      type: object
+      properties:
+        cards:
+          type: array
+          items:
+            $ref: '#/components/schemas/getCardResponsev2_cards'
+    getCardsResponse:
+      example:
+        cards:
+        - panToken: "5667195315700501"
+          cardHolderName: 1MEIPFg4Mcejpea63J+sgdbcRv3dk6lDr6VMg0VoI7Q=xJkwUDO319w+c3xmlUsLC2ILJEnGati0ul8ZbypUZ+4=
+          expiryDate: 2022-09-02
+          pan: "7777190953804822"
+          cvv: "777"
+          settings:
+            panToken: "5667195315700501"
+            panHash: bdbd4f1a48a1e3ea900c7f62db255401973fd88932ccdd1794adc55d0f5f58937d3786957abd54bd8d571bf61f856bf27faeb8055bbc919ddc627d73485ca713
+            cardStatus: FROZEN
+            channelSettings:
+              contactless: true
+              chipAndPin: true
+              atm: true
+              cardHolderNotPresent: false
+              magStripe: false
+              international: true
+    postDebitCard:
+      type: object
+      properties:
+        encryptedPIn:
+          type: string
+          description: Encrypted 4 digit PIN.
+          example: 0FBE5CC71499F2ED573D0928EA0F55EA25E54C1DB2D8E0C50116A64E676F8299D52E0D8702B365CF01F97A9AEE9E3D03C408341343FE2DFED62C45B5009D0B49257AF2DF169D43A9C8D550B48651E3BFC20AD796F861083F24CCD7D34EB5BB853C0F69A271687D18E297ABFFF2C0D5621FE2A0873C1726753E15EDABF9EE6FE7E793E68EBBE90F84B219625445E5C6E1EC5F71CA2FC2051E8E4C879D8DE78BA445A166A0751FDD4614E77F36B1EE38FCA89862D11D43A0C77EC771E7E7D32E492207E5520BDE9639D25FB336EE7EC96CB5E8A04559DE8902BC7125D2F9D705701818510953FB62F907730DE5AA38995A95F738B9C1E84B2DE975840B113CA566
+        accountNumber:
+          type: string
+          description: Account number associated with subscription.
+          example: "91919191"
+        sortCode:
+          type: string
+          description: 10x Sort code
+          example: "010101"
+    postDebitCardResponse:
+      type: object
+      properties:
+        pan:
+          type: string
+          description: Debit card's pan number.
+          example: "1234567890123456"
+        cvv:
+          type: string
+          description: The card verification number. 3 digits for Visa or Mastercard,
+            4 digits for Amex. This is only required for new cards.
+          example: "123"
+        expiryDate:
+          type: string
+          description: Debit card's expiry date.
+          format: Date
+          example: "12042022"
         firstName:
           type: string
+          description: Customer's first name on the debit card.
+          example: John
         lastName:
           type: string
-        email:
-          type: string
-        password:
-          type: string
-        phone:
-          type: string
-        userStatus:
-          type: integer
-          description: User Status
-          format: int32
-      xml:
-        name: User
-    Tag:
-      type: object
+          description: Customer's last name on the debit card.
+          example: Doe
+    getCardSettingsResponse:
       properties:
-        id:
-          type: integer
-          format: int64
-        name:
+        cardStatus:
           type: string
-      xml:
-        name: Tag
-    Pet:
+          description: Card status
+          example: ACTIVE
+          enum:
+          - ACTIVE
+          - FROZEN
+        channelSettings:
+          $ref: '#/components/schemas/cardChannelSettings'
+        panHash:
+          pattern: ^[a-fA-F0-9]{128}$
+          type: string
+          description: PAN hash
+          example: 0f734dd59e0f8c090127d3f347714829312522d6254ad82034e395908a3740ee82ed80346957902a88388049574855dde51795e172cec5278baa7400d9d58350
+        panToken:
+          pattern: ^[0-9]{16, 19}$
+          type: string
+          description: PAN token
+          example: "5356938020019956"
+    cardChannelSettings:
+      properties:
+        atm:
+          type: boolean
+          description: Card channel setting indicating if the ATM channel is enabled
+        cardHolderNotPresent:
+          type: boolean
+          description: Card channel setting indicating if the Card Holder Not Present
+            channel is enabled
+        chipAndPin:
+          type: boolean
+          description: Card channel setting indicating if Chip and PIN is enabled
+        contactless:
+          type: boolean
+          description: Card channel setting indicating if contactless is enabled
+        magStripe:
+          type: boolean
+          description: Card channel setting indicating if MAG stripe is enabled
+        international:
+          type: boolean
+          description: Card channel setting indicating if international payments are
+            enabled
+    updateCardSettingsRequest:
+      properties:
+        cardStatus:
+          type: string
+          description: Status to update the card with
+          example: ACTIVE
+          enum:
+          - ACTIVE
+          - FROZEN
+        channelSettings:
+          $ref: '#/components/schemas/cardChannelSettings'
+    postCardActivateRequest:
       required:
-      - name
-      - photoUrls
+      - cvv
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
-        category:
-          $ref: '#/components/schemas/Category'
-        name:
+        cvv:
           type: string
-          example: doggie
-        photoUrls:
-          type: array
-          xml:
-            name: photoUrl
-            wrapped: true
-          items:
-            type: string
-        tags:
-          type: array
-          xml:
-            name: tag
-            wrapped: true
-          items:
-            $ref: '#/components/schemas/Tag'
+          description: The card verification number. 3 digits for Visa or Mastercard,
+            4 digits for Amex. This is only required for new cards.
+          example: "777"
+    postCardActivateResponse:
+      type: object
+      properties:
+        cardExpiryDate:
+          type: string
+          description: Card expiry date in DD/MM/YYYY format
+          example: 01/01/2020
+        panToken:
+          pattern: ^[0-9]{16, 19}$
+          type: string
+          description: PAN token
+          example: "4462030000000000"
+        cvv:
+          type: string
+          description: The card verification number. 3 digits for Visa or Mastercard,
+            4 digits for Amex. This is only required for new cards.
+          example: "777"
+    postSetCardPinRequest:
+      properties:
+        subscriptionKey:
+          $ref: '#/components/schemas/subscriptionsKey'
+        certificateKeyId:
+          type: string
+          description: Certificate key identifier
+          example: 4D5905206667464B8A055A21F8CCFF42
+        encryptedPin:
+          type: string
+          description: Encrypted 4 digit PIN
+          example: 67eef001c4a9b3bedb53cc89ec49f32ba7c434016c3e7c0d2806872dabeb7fc9b79729029d6be30740dbad1376c583bdca22655aaa52b5a5466e68a4523a532e89a1adff76f2931f6e839c0a0c38ef26300f2ae2515a4be946cbfc62b05c0264b7eeb46ac6e66b632ce8dd212d6cb3ec276e635afd6aa682f905c81011d558c62d69bf4511dfe86346790118b05d0371e740ad3a3870a8080396ef2318d4893e5aad160d0cf01d2b051a6c2ff0a36a11314f29c99d22634f96f7581873e6a62cf81868034f2eda46b47cf219382028e6a121ecd024eba3977c9cc02ce968160747b33cdbd20e2ccbc2c1c6e4369e2088e967a78b61afca0d67988a2748ddc689
+    cardId:
+      type: string
+      description: The Unique ID associated with a card
+    getDebitCardPinResponse:
+      required:
+      - encryptedPin
+      type: object
+      properties:
+        encryptedPin:
+          type: string
+          description: Encrypted 4 digit PIN
+          example: 0FBE5CC71499F2ED573D0928EA0F55EA25E54C1DB2D8E0C50116A64E676F8299D52E0D8702B365CF01F97A9AEE9E3D03C408341343FE2DFED62C45B5009D0B49257AF2DF169D43A9C8D550B48651E3BFC20AD796F861083F24CCD7D34EB5BB853C0F69A271687D18E297ABFFF2C0D5621FE2A0873C1726753E15EDABF9EE6FE7E793E68EBBE90F84B219625445E5C6E1EC5F71CA2FC2051E8E4C879D8DE78BA445A166A0751FDD4614E77F36B1EE38FCA89862D11D43A0C77EC771E7E7D32E492207E5520BDE9639D25FB336EE7EC96CB5E8A04559DE8902BC7125D2F9D705701818510953FB62F907730DE5AA38995A95F738B9C1E84B2DE975840B113CA566
+    reportDebitCardResponse:
+      required:
+      - status
+      type: object
+      properties:
         status:
           type: string
-          description: pet status in the store
+          description: Status of the request to report a debit card as lost or stolen
           enum:
-          - available
-          - pending
-          - sold
-      xml:
-        name: Pet
-    ApiResponse:
+          - SUCCESS
+    replaceDebitCardResponse:
+      required:
+      - status
+      type: object
+      properties:
+        status:
+          type: string
+          description: Status of a replacement debit card request
+          enum:
+          - SUCCESS
+    getCardPins:
+      type: object
+      properties:
+        encryptedPin:
+          type: string
+          example: 0FBE5CC71499F2ED573D0928EA0F55EA25E54C1DB2D8E0C50116A64E676F8299D52E0D8702B365CF01F97A9AEE9E3D03C408341343FE2DFED62C45B5009D0B49257AF2DF169D43A9C8D550B48651E3BFC20AD796F861083F24CCD7D34EB5BB853C0F69A271687D18E297ABFFF2C0D5621FE2A0873C1726753E15EDABF9EE6FE7E793E68EBBE90F84B219625445E5C6E1EC5F71CA2FC2051E8E4C879D8DE78BA445A166A0751FDD4614E77F36B1EE38FCA89862D11D43A0C77EC771E7E7D32E492207E5520BDE9639D25FB336EE7EC96CB5E8A04559DE8902BC7125D2F9D705701818510953FB62F907730DE5AA38995A95F738B9C1E84B2DE975840B113CA566
+    subscriptionsKey:
+      type: string
+      description: Unique identifier for an account
+      format: uuid
+    partyKey:
+      type: string
+      description: partyKey is unique identifier for all party resources associated
+        with username.
+      format: uuid
+    productKey:
+      type: string
+      description: The unique Product Identifier
+      example: 1ba225f7-1b43-4db2-8179-65f49c9ac13b
+    body:
+      type: object
+      properties:
+        type:
+          type: string
+          description: Use "card" to top up with a new card. If using a saved card,
+            use "token" and provide the panToken of the saved card.
+          example: card
+          enum:
+          - card
+          - token
+        accountId:
+          type: string
+          description: The accountId is the given subscriptionKey associated with
+            the account.
+          format: uuid
+          example: cfaa4302-e4c2-481e-aa60-19d7d5a58839
+        pan:
+          type: string
+          description: Primary Account Number, Not required if you have panToken in
+            request
+          example: "4444333322221111"
+        panToken:
+          type: string
+          description: Tokenised PAN, Not required if you have pan in request
+          example: "9962010369406267082"
+        cvv:
+          type: string
+          description: The card verification number. 3 digits for Visa or Mastercard,
+            4 digits for Amex. This is only required for new cards.
+          example: "247"
+        expiryMonth:
+          type: string
+          description: Two digit month format MM
+          example: "09"
+        expiryYear:
+          type: string
+          description: Four digit year format YYYY
+          example: "2020"
+        amount:
+          type: string
+          description: Amount of money
+          example: "15"
+        saveCard:
+          type: string
+          example: "true"
+    inline_response_200:
+      type: object
+      properties:
+        message:
+          type: string
+          example: SAVE CARD SUCCESSFUL
+    inline_response_201:
+      type: object
+      properties:
+        payeeKey:
+          type: string
+          format: uuid
+          example: c724518b-adce-4a16-a341-ec6186b35cc6
+    badRequestNestedErrors_errors:
       type: object
       properties:
         code:
           type: integer
-          format: int32
-        type:
-          type: string
         message:
           type: string
-    body:
+        field:
+          type: string
+    getTransactionCategoriesResponse_categories:
       type: object
       properties:
         name:
           type: string
-          description: Updated name of the pet
-        status:
+          description: Name of the category
+          example: TRAVEL
+        tenantKey:
           type: string
-          description: Updated status of the pet
-  requestBodies:
-    Pet:
-      description: Pet object that needs to be added to the store
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Pet'
-        application/xml:
-          schema:
-            $ref: '#/components/schemas/Pet'
-      required: true
-    UserArray:
-      description: List of user object
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/User'
-      required: true
-  securitySchemes:
-    petstore_auth:
-      type: oauth2
-      flows:
-        implicit:
-          authorizationUrl: http://petstore.swagger.io/oauth/dialog
-          scopes:
-            write:pets: modify pets in your account
-            read:pets: read your pets
-    api_key:
-      type: apiKey
-      name: api_key
-      in: header
+          description: The key to tennent to which categories apply
+          example: "10000"
+        productSegment:
+          type: string
+          description: 'PRODUCTSEGMENT What type of product it belongs to default
+            is returned when the product cannot be infferred '
+          example: default
+          enum:
+          - Personal
+          - Business
+          - default
+    getTransactionCategoriesResponse_default:
+      type: object
+      properties:
+        payment:
+          type: string
+          description: The default value
+          example: GENERAL
+        income:
+          type: string
+        directdebit:
+          type: string
+    getCardResponsev2_cards:
+      properties:
+        cardActivationDate:
+          type: string
+          description: The date of card being active
+          example: "1231231"
+        panToken:
+          type: string
+          description: Tokenised Primary Account Number (PAN)
+          example: "5357246502984112"
+        partyKey:
+          $ref: '#/components/schemas/partyKey'
+        subscriptionKey:
+          $ref: '#/components/schemas/subscriptionsKey'
+        panHash:
+          type: string
+          description: Primary Account Number (PAN) hash
+          example: f9f2fd259900f9effac970ebb9b99496c1971412605377306c6d052eabeebe2db2b7eb9a3c22cd6241004ed40354b9d4e662b94d4ac453491ce587c5384f62e4
+        processorAccountId:
+          type: string
+          description: Unique account provided by the processor
+          example: "00000018351"
+        processorCustomerId:
+          type: string
+          description: Unique customer Id provided by the processor
+          example: "000018409"
+        cardExpiryDate:
+          type: string
+          description: Card expiry date
+          example: 2022-07-10
+        tokenProviderId:
+          type: string
+          description: ID that tokenises the PAN
+          example: TokenX-ID
+        tokenProviderName:
+          type: string
+          description: Provider of the token
+          example: TokenX
+        tokenExpiryDate:
+          type: string
+          description: Expiry date pan tokenisation
+          example: 2022-07-10
+        cardCountryCode:
+          type: string
+          description: Card country code
+          example: GBR
+        cardCurrencyCode:
+          type: string
+          description: Card currency code
+          example: GBP
+        cardProcessorName:
+          type: string
+          description: The processor of the card
+          example: TSYS
+        cardHolderName:
+          type: string
+          description: Name of the card holder
+          example: Anderson smith
+        cardEffectiveDate:
+          type: string
+          description: The date from which the card is valid
+          example: 2019-09-17
+        cardStatus:
+          type: string
+          description: Status of the card
+          example: ACTIVE
+          enum:
+          - ACTIVE
+          - FROZEN
+        cardSequenceNumber:
+          type: string
+          description: The card sequence to the same account
+          example: "00"
+        cardId:
+          type: string
+          description: The Unique ID associated with a card
+          example: 78fe7537-079d-4904-b424-1c70a76fa41c
+        cardOrderDate:
+          type: string
+          description: The date which the card is order on
+          example: 2019-09-17
+        serviceCode:
+          type: string
+          description: The internal 10x service code
+          example: DCOM
+        processorAppId:
+          type: string
+          description: The card proccessor unique ID
+          example: "000018498"
+        productKey:
+          $ref: '#/components/schemas/productKey'
+        subscriptionStatus:
+          type: string
+          description: Status of the subscription
+          example: ACTIVE
+          enum:
+          - ACTIVE
+          - FAILED
+          - PROVISIONED
+          - CLOSED
+          - CLOSURE_PENDING
+        tenantKey:
+          type: string
+          example: "10000"
+        subscriptionAccountNumber:
+          type: string
+          description: The account number of the specific card
+          example: "77691654"
+        subscriptionSortCode:
+          type: string
+          description: sort code of the specific card
+          example: "040016"
